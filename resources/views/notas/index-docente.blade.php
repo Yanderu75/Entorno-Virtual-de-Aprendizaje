@@ -2,11 +2,16 @@
 
 @section('title', 'Gestionar Notas - ' . $materia->nombre)
 
-@section('content')
+@section('main_content_body')
 <div class="card">
     <div class="card-header">
-        <h1>Gestionar Notas - {{ $materia->nombre }}</h1>
-        <p style="margin-top: 10px; color: #666;">
+        <h1>
+            Gestionar Notas: {{ $materia->nombre }} 
+            <span class="badge badge-primary" style="font-size: 0.6em; vertical-align: middle;">
+                {{ $materia->grado }} "{{ $materia->seccion }}"
+            </span>
+        </h1>
+        <p style="margin-top: 5px; color: #666;">
             <strong>Docente:</strong> {{ $materia->docente->nombre ?? 'Sin asignar' }} | 
             <strong>Periodo:</strong> {{ $materia->periodo ?? '-' }}
         </p>
@@ -17,6 +22,8 @@
                 {{ session('success') }}
             </div>
         @endif
+        
+        <!-- Filters removed as per user request (Subject determines Section) -->
 
         @if($estudiantes->count() > 0)
             <table class="table">
@@ -36,7 +43,7 @@
                     <tr>
                         <td>
                             <strong>{{ $estudiante->estudiante->nombre }}</strong><br>
-                            <small>{{ $estudiante->estudiante->correo }}</small>
+                            <small>{{ $estudiante->estudiante->grado ?? '' }} "{{ $estudiante->estudiante->seccion ?? '' }}"</small>
                         </td>
                         <td>
                             @if($estudiante->promediosPorLapso[1] !== null)
@@ -121,6 +128,14 @@
 }
 </style>
 @endsection
+
+
+
+
+
+
+
+
 
 
 

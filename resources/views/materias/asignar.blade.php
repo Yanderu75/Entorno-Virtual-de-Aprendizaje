@@ -2,7 +2,7 @@
 
 @section('title', 'Asignar Estudiantes a Materia')
 
-@section('content')
+@section('main_content_body')
 <div class="card">
     <div class="card-header">
         <h1>Asignar Estudiantes - {{ $materia->nombre }}</h1>
@@ -43,6 +43,31 @@
                     Solicitar Inscripción de Estudiante
                 @endif
             </h2>
+
+            <!-- Student Filter Form -->
+            <form method="GET" action="{{ route('materias.asignar', $materia->id_materia) }}" style="background: #f4f6f9; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                <div class="row">
+                    <div class="col-md-5">
+                        <select name="grado" class="form-control" onchange="this.form.submit()">
+                            <option value="">Filtrar por Grado</option>
+                            @foreach(['1er Año', '2do Año', '3er Año', '4to Año', '5to Año'] as $g)
+                                <option value="{{ $g }}" {{ (isset($filterGrado) && $filterGrado == $g) ? 'selected' : '' }}>{{ $g }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <select name="seccion" class="form-control" onchange="this.form.submit()">
+                            <option value="">Filtrar por Sección</option>
+                            @foreach(['A', 'B', 'C', 'D', 'E', 'U'] as $s)
+                                <option value="{{ $s }}" {{ (isset($filterSeccion) && $filterSeccion == $s) ? 'selected' : '' }}>{{ $s }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <a href="{{ route('materias.asignar', $materia->id_materia) }}" class="btn btn-default btn-block">Limpiar</a>
+                    </div>
+                </div>
+            </form>
             <form method="POST" action="{{ route('materias.asignar.store', $materia->id_materia) }}" style="display: flex; gap: 10px; align-items: flex-end;">
                 @csrf
                 <div class="form-group" style="flex: 1;">

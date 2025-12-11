@@ -2,7 +2,7 @@
 
 @section('title', 'Detalle de Materia')
 
-@section('content')
+@section('main_content_body')
 <div class="card">
     <div class="card-header">
         <h1>{{ $materia->nombre }}</h1>
@@ -27,6 +27,10 @@
             <strong>Horario:</strong>
             <p>{{ $materia->horario ?? '-' }}</p>
         </div>
+
+        <hr>
+
+
 
         @if(Auth::user()->rol === 'docente' || Auth::user()->rol === 'admin')
             <div style="margin-top: 30px;">

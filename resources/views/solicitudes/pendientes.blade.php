@@ -2,7 +2,7 @@
 
 @section('title', 'Solicitudes Pendientes')
 
-@section('content')
+@section('main_content_body')
 <div class="card">
     <div class="card-header">
         <h1>Solicitudes de Inscripción Pendientes</h1>

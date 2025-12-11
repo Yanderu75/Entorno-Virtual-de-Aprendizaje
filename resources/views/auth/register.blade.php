@@ -1,60 +1,79 @@
-@extends('layouts.app')
+@extends('layouts.auth')
 
 @section('title', 'Registro')
 
 @section('content')
-<div class="card" style="max-width: 500px; margin: 0 auto;">
-    <div class="card-header">
-        <h1>Crear Cuenta</h1>
-        <p>Regístrate en el Entorno Virtual de Aprendizaje</p>
-    </div>
-    <div class="card-body">
-        @if ($errors->any())
-            <div class="alert alert-error">
-                <ul style="margin: 0; padding-left: 20px;">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+    <p class="login-box-msg">Registrar una nueva cuenta</p>
 
-        <form method="POST" action="{{ route('register') }}">
-            @csrf
-            <div class="form-group">
-                <label for="nombre">Nombre Completo</label>
-                <input type="text" id="nombre" name="nombre" value="{{ old('nombre') }}" required autofocus>
-            </div>
-
-            <div class="form-group">
-                <label for="correo">Correo Electrónico</label>
-                <input type="email" id="correo" name="correo" value="{{ old('correo') }}" required>
-            </div>
-
-            <div class="form-group">
-                <label for="contraseña">Contraseña</label>
-                <input type="password" id="contraseña" name="contraseña" required>
-            </div>
-
-            <div class="form-group">
-                <label for="contraseña_confirmation">Confirmar Contraseña</label>
-                <input type="password" id="contraseña_confirmation" name="contraseña_confirmation" required>
-            </div>
-
-            <div class="form-group">
-                <label for="rol">Rol</label>
-                <select id="rol" name="rol" required>
-                    <option value="estudiante">Estudiante</option>
-                    <option value="docente">Docente</option>
-                </select>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Registrarse</button>
-        </form>
-
-        <div class="text-center mt-3">
-            <p>¿Ya tienes cuenta? <a href="{{ route('login') }}" class="link">Inicia sesión aquí</a></p>
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul style="margin: 0; padding-left: 20px;">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
         </div>
-    </div>
-</div>
+    @endif
+
+    <form method="POST" action="{{ route('register') }}">
+        @csrf
+        <div class="input-group mb-3">
+            <input type="text" name="nombre" class="form-control" placeholder="Nombre Completo" value="{{ old('nombre') }}" required autofocus>
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <span class="fas fa-user"></span>
+                </div>
+            </div>
+        </div>
+        <div class="input-group mb-3">
+            <input type="text" name="cedula" class="form-control" placeholder="Cédula de Identidad" value="{{ old('cedula') }}" required>
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <span class="fas fa-id-card"></span>
+                </div>
+            </div>
+        </div>
+        <div class="input-group mb-3">
+            <input type="email" name="correo" class="form-control" placeholder="Correo Electrónico" value="{{ old('correo') }}" required>
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <span class="fas fa-envelope"></span>
+                </div>
+            </div>
+        </div>
+        <div class="input-group mb-3">
+            <input type="password" name="contraseña" class="form-control" placeholder="Contraseña" required>
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <span class="fas fa-lock"></span>
+                </div>
+            </div>
+        </div>
+        <div class="input-group mb-3">
+            <input type="password" name="contraseña_confirmation" class="form-control" placeholder="Confirmar Contraseña" required>
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <span class="fas fa-lock"></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Role selection removed: Default is Student -->
+
+        <div class="row">
+            <div class="col-8">
+                <div class="icheck-primary">
+                    <input type="checkbox" id="agreeTerms" name="terms" value="agree" required>
+                    <label for="agreeTerms">
+                     Acepto los <a href="#">términos</a>
+                    </label>
+                </div>
+            </div>
+            <div class="col-4">
+                <button type="submit" class="btn btn-primary btn-block">Registro</button>
+            </div>
+        </div>
+    </form>
+
+    <a href="{{ route('login') }}" class="text-center">Ya tengo una cuenta</a>
 @endsection

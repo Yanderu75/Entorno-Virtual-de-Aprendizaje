@@ -95,9 +95,9 @@ class AuthController extends Controller
     {
         $request->validate([
             'nombre' => 'required|min:3|max:100',
+            'cedula' => 'required|string|max:20|unique:usuarios,cedula',
             'correo' => 'required|email|unique:usuarios,correo',
             'contraseña' => 'required|min:6|confirmed',
-            'rol' => 'required|in:estudiante,docente',
         ], [
             'nombre.required' => 'El nombre es obligatorio',
             'nombre.min' => 'El nombre debe tener al menos 3 caracteres',
@@ -107,14 +107,14 @@ class AuthController extends Controller
             'contraseña.required' => 'La contraseña es obligatoria',
             'contraseña.min' => 'La contraseña debe tener al menos 6 caracteres',
             'contraseña.confirmed' => 'Las contraseñas no coinciden',
-            'rol.required' => 'Debes seleccionar un rol',
         ]);
 
         $user = User::create([
             'nombre' => $request->nombre,
+            'cedula' => $request->cedula,
             'correo' => $request->correo,
             'contraseña' => Hash::make($request->contraseña),
-            'rol' => $request->rol,
+            'rol' => 'estudiante', // Default role
             'estado' => 'activo',
         ]);
 

@@ -1,50 +1,75 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Entorno Virtual de Aprendizaje')</title>
-    <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
-</head>
-<body>
-    @auth
-    <div class="navbar">
-        <div class="navbar-content">
-            <div class="navbar-brand">EVA - Entorno Virtual de Aprendizaje</div>
-            <div class="navbar-user">
-                <div class="user-info">
-                    <span>{{ Auth::user()->nombre }}</span>
-                    <span class="badge badge-{{ Auth::user()->rol }}">{{ ucfirst(Auth::user()->rol) }}</span>
-                </div>
-                @if(Auth::check())
-                    <a href="{{ route('notificaciones.index') }}" class="btn btn-primary btn-nav" style="position: relative;">
-                        Notificaciones
-                        @php
-                            $notificacionesNoLeidas = Auth::user()->notificacionesNoLeidas()->count();
-                        @endphp
-                        @if($notificacionesNoLeidas > 0)
-                            <span style="position: absolute; top: -5px; right: -5px; background: #dc3545; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold;">{{ $notificacionesNoLeidas }}</span>
-                        @endif
-                    </a>
-                @endif
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="btn btn-primary btn-nav">Salir</button>
-                </form>
+@extends('adminlte::page')
+
+@section('title', 'EVA - Entorno Virtual de Aprendizaje')
+
+@section('content_header')
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>@yield('subtitle', '')</h1>
+            </div>
+            <div class="col-sm-6">
+                 <!-- Breadcrumb could go here -->
             </div>
         </div>
     </div>
-    @endauth
+@stop
 
-    <div class="container">
+@section('content')
+    <div class="container-fluid">
         @if(session('success'))
-            <div class="alert alert-success">
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ session('success') }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        @endif
+        
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
         @endif
 
-        @yield('content')
+        @yield('main_content_body')
     </div>
-</body>
-</html>
+@stop
+
+@section('content_header')
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+    
+    <div class="row mb-2">
+        <div class="col-sm-6">
+            <h1>@yield('title_header', '')</h1>
+        </div>
+    </div>
+@stop
+
+@section('css')
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+    <!-- Add any extra CSS here -->
+@stop
+
+@section('js')
+    <script> console.log('Hi!'); </script>
+    <!-- Add any extra JS here -->
+@stop

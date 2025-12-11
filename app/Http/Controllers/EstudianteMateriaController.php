@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Auth;
 
 class EstudianteMateriaController extends Controller
 {
-    public function index($materiaId)
+    public function index(Request $request, $materiaId)
     {
         $materia = Materia::findOrFail($materiaId);
         
@@ -23,9 +23,23 @@ class EstudianteMateriaController extends Controller
         $estudiantesAsignados = EstudianteMateria::where('id_materia', $materiaId)
             ->with('estudiante')
             ->get();
-        $estudiantes = User::where('rol', 'estudiante')
-            ->where('estado', 'activo')
-            ->get();
+            
+        $estudiantesQuery = User::where('rol', 'estudiante')
+            ->where('estado', 'activo');
+            
+        // Filters for finding candidates
+        $filterGrado = $request->get('grado');
+        $filterSeccion = $request->get('seccion');
+        
+        if ($filterGrado) {
+            $estudiantesQuery->where('grado', $filterGrado);
+        }
+        
+        if ($filterSeccion) {
+            $estudiantesQuery->where('seccion', $filterSeccion);
+        }
+
+        $estudiantes = $estudiantesQuery->get();
 
         // Contar cupos disponibles
         $cuposDisponibles = null;
@@ -33,7 +47,7 @@ class EstudianteMateriaController extends Controller
             $cuposDisponibles = $materia->cupo_maximo - $estudiantesAsignados->count();
         }
 
-        return view('materias.asignar', compact('materia', 'estudiantesAsignados', 'estudiantes', 'cuposDisponibles'));
+        return view('materias.asignar', compact('materia', 'estudiantesAsignados', 'estudiantes', 'cuposDisponibles', 'filterGrado', 'filterSeccion'));
     }
 
     public function store(Request $request, $materiaId)

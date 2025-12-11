@@ -49,23 +49,43 @@ class NotaController extends Controller
     // Vista para docentes: listar estudiantes de una materia para calificar
     public function indexDocente($materiaId)
     {
-        $materia = Materia::findOrFail($materiaId);
+        $materia = Materia::with(['recursos', 'docente'])->findOrFail($materiaId);
         
         // Verificar permisos
         if (Auth::user()->rol !== 'admin' && (Auth::user()->rol !== 'docente' || $materia->id_docente !== Auth::id())) {
             abort(403, 'No tienes permisos para ver esta materia');
         }
 
-        $estudiantes = EstudianteMateria::where('id_materia', $materiaId)
+        $query = EstudianteMateria::where('id_materia', $materiaId)
             ->with(['estudiante', 'calificaciones'])
-            ->get();
+            ->whereHas('estudiante', function($q) {
+                $q->where('estado', 'activo');
+            });
+
+        // Filters
+        $filterGrado = request('grado');
+        $filterSeccion = request('seccion');
+
+        if ($filterGrado) {
+            $query->whereHas('estudiante', function($q) use ($filterGrado) {
+                $q->where('grado', $filterGrado);
+            });
+        }
+
+        if ($filterSeccion) {
+            $query->whereHas('estudiante', function($q) use ($filterSeccion) {
+                $q->where('seccion', $filterSeccion);
+            });
+        }
+
+        $estudiantes = $query->get();
 
         // Calcular promedios por lapso para cada estudiante
         foreach ($estudiantes as $estudiante) {
             $estudiante->promediosPorLapso = $this->calcularPromediosPorLapso($estudiante->id_estudiante_materia);
         }
 
-        return view('notas.index-docente', compact('materia', 'estudiantes'));
+        return view('notas.index-docente', compact('materia', 'estudiantes', 'filterGrado', 'filterSeccion'));
     }
 
     // Vista para docentes: crear/editar notas de un estudiante en un lapso
@@ -151,7 +171,7 @@ class NotaController extends Controller
                 ]);
             }
 
-            // Actualizar promedio general del estudiante en la materia
+            // Actualizra promedio general del estudiante en la materia
             $this->actualizarPromedioGeneral($estudianteMateriaId);
 
             Auditoria::create([
@@ -170,7 +190,7 @@ class NotaController extends Controller
         }
     }
 
-    // Calcular promedio de un lapso específico
+    // Calcular promedio de un lapso especifico
     private function calcularPromedioLapso($estudianteMateriaId, $lapso)
     {
         $calificaciones = Calificacion::where('id_estudiante_materia', $estudianteMateriaId)
@@ -185,7 +205,7 @@ class NotaController extends Controller
         $cantidad = $calificaciones->count();
         $promedio = $suma / $cantidad;
 
-        // Redondear según reglas venezolanas (0.5 hacia arriba)
+        // Redondeo
         return round($promedio, 0, PHP_ROUND_HALF_UP);
     }
 
@@ -216,7 +236,7 @@ class NotaController extends Controller
             $promedioGeneral = round($promedioGeneral, 0, PHP_ROUND_HALF_UP);
         }
 
-        // Determinar estado (aprobado >= 10, reprobado < 10)
+        // Determinar si es aprobado o reprobado
         $estado = $promedioGeneral >= 10 ? 'aprobado' : 'reprobado';
 
         EstudianteMateria::where('id_estudiante_materia', $estudianteMateriaId)

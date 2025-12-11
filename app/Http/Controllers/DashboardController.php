@@ -11,12 +11,35 @@ class DashboardController extends Controller
 {
     public function estudiante()
     {
-        return view('dashboard.estudiante');
+        $userId = auth()->id();
+        $materiasInscritas = \App\Models\EstudianteMateria::where('id_estudiante', $userId)->count();
+        // Calculate average grade if logic exists, otherwise 0
+        $promedioGeneral = \App\Models\EstudianteMateria::where('id_estudiante', $userId)->avg('promedio') ?? 0;
+        
+        return view('dashboard.estudiante', [
+            'materiasInscritas' => $materiasInscritas,
+            'promedioGeneral' => number_format($promedioGeneral, 2),
+        ]);
     }
 
     public function docente()
     {
-        return view('dashboard.docente');
+        $userId = auth()->id();
+        $totalMaterias = \App\Models\Materia::where('id_docente', $userId)->count();
+        // Count total unique students across all materias of this docent
+        $totalEstudiantes = \App\Models\EstudianteMateria::whereHas('materia', function($query) use ($userId){
+            $query->where('id_docente', $userId);
+        })->distinct('id_estudiante')->count('id_estudiante');
+        
+        $solicitudesPendientes = \App\Models\SolicitudInscripcion::where('id_docente', $userId)
+                                ->where('estado', 'pendiente')
+                                ->count();
+
+        return view('dashboard.docente', [
+            'totalMaterias' => $totalMaterias,
+            'totalEstudiantes' => $totalEstudiantes,
+            'solicitudesPendientes' => $solicitudesPendientes,
+        ]);
     }
 
     public function admin()

@@ -2,7 +2,7 @@
 
 @section('title', 'Mis Solicitudes de Inscripción')
 
-@section('content')
+@section('main_content_body')
 <div class="card">
     <div class="card-header">
         <h1>Mis Solicitudes de Inscripción</h1>

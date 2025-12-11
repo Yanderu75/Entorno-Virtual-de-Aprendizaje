@@ -18,7 +18,10 @@ class Materia extends Model
         'id_docente',
         'periodo',
         'horario',
+        'horario',
         'cupo_maximo',
+        'grado',
+        'seccion',
     ];
 
     public function docente()
@@ -34,6 +37,11 @@ class Materia extends Model
     public function solicitudes()
     {
         return $this->hasMany(SolicitudInscripcion::class, 'id_materia');
+    }
+
+    public function recursos()
+    {
+        return $this->hasMany(Recurso::class, 'id_materia');
     }
 
     public function tieneCuposDisponibles()

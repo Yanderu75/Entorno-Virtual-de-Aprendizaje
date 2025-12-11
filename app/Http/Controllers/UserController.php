@@ -10,10 +10,41 @@ use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $usuarios = User::all();
-        return view('users.index', compact('usuarios'));
+        $query = User::query();
+
+        // Filter by Role
+        $filterRol = $request->get('rol');
+        if ($filterRol) {
+            $query->where('rol', $filterRol);
+        }
+
+        // Filter by Grado (Only relevant for Students usually, but generic is fine)
+        $filterGrado = $request->get('grado');
+        if($filterGrado && $filterRol === 'estudiante') {
+             $query->where('grado', $filterGrado);
+        }
+
+        // Filter by Seccion
+        $filterSeccion = $request->get('seccion');
+        if($filterSeccion && $filterRol === 'estudiante') {
+             $query->where('seccion', $filterSeccion);
+        }
+
+        // Search by Cedula or Name
+        $busqueda = $request->get('busqueda');
+        if ($busqueda) {
+            $query->where(function($q) use ($busqueda) {
+                $q->where('cedula', 'like', "%{$busqueda}%")
+                  ->orWhere('nombre', 'like', "%{$busqueda}%")
+                  ->orWhere('correo', 'like', "%{$busqueda}%");
+            });
+        }
+
+        $usuarios = $query->get();
+
+        return view('users.index', compact('usuarios', 'filterRol', 'filterGrado', 'filterSeccion', 'busqueda'));
     }
 
     public function show($id)
@@ -34,6 +65,7 @@ class UserController extends Controller
 
         $request->validate([
             'nombre' => 'required|min:3|max:100',
+            'cedula' => 'required|string|max:20|unique:usuarios,cedula,' . $id . ',id_usuario',
             'correo' => 'required|email|unique:usuarios,correo,' . $id . ',id_usuario',
             'rol' => 'required|in:estudiante,docente,admin',
             'estado' => 'required|in:activo,bloqueado',
@@ -49,10 +81,20 @@ class UserController extends Controller
 
         $usuario->update([
             'nombre' => $request->nombre,
+            'cedula' => $request->cedula,
             'correo' => $request->correo,
             'rol' => $request->rol,
+            'especialidad' => $request->rol == 'docente' ? $request->especialidad : null,
+            'grado' => $request->rol == 'estudiante' ? $request->grado : null,
+            'seccion' => $request->rol == 'estudiante' ? $request->seccion : null,
             'estado' => $request->estado,
         ]);
+
+        // Automated Academic Layout Logic: Sync Subjects if Student
+        if ($usuario->rol === 'estudiante') {
+            $enrollmentService = new \App\Services\EnrollmentService();
+            $enrollmentService->syncStudentSubjects($usuario);
+        }
 
         if ($request->filled('contraseña')) {
             $request->validate([

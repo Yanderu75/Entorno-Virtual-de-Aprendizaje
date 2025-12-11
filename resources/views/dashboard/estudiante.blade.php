@@ -2,21 +2,39 @@
 
 @section('title', 'Dashboard - Estudiante')
 
-@section('content')
+@section('main_content_body')
 <div class="card">
     <div class="card-header">
         <h1>Bienvenido, {{ Auth::user()->nombre }}</h1>
     </div>
     <div class="card-body">
-        <div class="dashboard-stats">
-            <div class="stat-card">
-                <h3>-</h3>
-                <p>Mis Materias</p>
+        <div class="row">
+            <div class="col-lg-6 col-6">
+                <!-- small box -->
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>{{ $materiasInscritas }}</h3>
+                        <p>Materias Inscritas</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                </div>
             </div>
-            <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                <h3>-</h3>
-                <p>Promedio General</p>
+            <!-- ./col -->
+            <div class="col-lg-6 col-6">
+                <!-- small box -->
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>{{ $promedioGeneral }}</h3>
+                        <p>Promedio General</p>
+                    </div>
+                    <div class="icon">
+                        <i class="ion ion-stats-bars"></i>
+                    </div>
+                </div>
             </div>
+            <!-- ./col -->
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px;">

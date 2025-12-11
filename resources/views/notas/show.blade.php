@@ -2,28 +2,7 @@
 
 @section('title', 'Detalle de Notas')
 
-@section('content')
-<div class="card">
-    <div class="card-header">
-        <h1>{{ $estudianteMateria->materia->nombre }}</h1>
-    </div>
-    <div class="card-body">
-        <div style="margin-bottom: 30px;">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-                <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                    <h3>{{ number_format($estudianteMateria->promedio, 0) }}</h3>
-                    <p>Promedio General</p>
-                    @if($estudianteMateria->promedio >= 10)
-                        <span style="color: #28a745; font-weight: bold;">✓ Aprobado</span>
-                    @else
-                        <span style="color: #dc3545; font-weight: bold;">✗ Reprobado</span>
-                    @endif
-                </div>
-                <div class="stat-card stat-card-pink">
-                    <h3>{{ number_format($estudianteMateria->avance, 2) }}%</h3>
-                    <p>Avance</p>
-                </div>
-            </div>
+@section('main_content_body')
         </div>
 
         <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">

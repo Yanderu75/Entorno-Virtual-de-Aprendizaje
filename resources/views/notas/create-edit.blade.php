@@ -2,7 +2,7 @@
 
 @section('title', 'Gestionar Notas - Lapso ' . $lapso)
 
-@section('content')
+@section('main_content_body')
 <div class="card">
     <div class="card-header">
         <h1>Gestionar Notas - Lapso {{ $lapso }}</h1>
@@ -149,6 +149,12 @@ function eliminarUltimaEvaluacion() {
 }
 </style>
 @endsection
+
+
+
+
+
+
 
 
 

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 
 class MateriaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         if (Auth::user()->rol === 'estudiante') {
             $materiasAsignadas = EstudianteMateria::where('id_estudiante', Auth::id())
@@ -19,18 +19,45 @@ class MateriaController extends Controller
             return view('materias.index-estudiante', compact('materiasAsignadas'));
         }
 
-        $materias = Materia::with('docente')->get();
-        return view('materias.index', compact('materias'));
+        if (Auth::user()->rol === 'docente') {
+            // Teacher sees only their assigned subjects
+            $materias = Materia::where('id_docente', Auth::id())->get();
+            return view('materias.index', compact('materias'));
+        }
+
+        // Admin sees all, with filters
+        $query = Materia::with('docente');
+
+        // Filters
+        $filterGrado = $request->get('grado');
+        if ($filterGrado) {
+            $query->where('grado', $filterGrado);
+        }
+
+        $filterSeccion = $request->get('seccion');
+        if ($filterSeccion) {
+            $query->where('seccion', $filterSeccion);
+        }
+
+        $filterNombre = $request->get('nombre');
+        if ($filterNombre) {
+            $query->where('nombre', $filterNombre);
+        }
+
+        $materias = $query->get();
+        return view('materias.index', compact('materias', 'filterGrado', 'filterSeccion', 'filterNombre'));
     }
 
     public function create()
     {
+        if (Auth::user()->rol !== 'admin') abort(403);
         $docentes = \App\Models\User::where('rol', 'docente')->get();
         return view('materias.create', compact('docentes'));
     }
 
     public function store(Request $request)
     {
+        if (Auth::user()->rol !== 'admin') abort(403);
         $request->validate([
             'nombre' => 'required|min:3|max:100',
             'descripcion' => 'nullable|max:500',
@@ -54,7 +81,13 @@ class MateriaController extends Controller
             'periodo' => $request->periodo,
             'horario' => $request->horario,
             'cupo_maximo' => $request->cupo_maximo,
+            'grado' => $request->grado,
+            'seccion' => $request->seccion,
         ]);
+
+        // Sync students immediately
+        $enrollmentService = new \App\Services\EnrollmentService();
+        $enrollmentService->syncMateriaStudents($materia);
 
         Auditoria::create([
             'id_usuario' => Auth::id(),
@@ -67,12 +100,22 @@ class MateriaController extends Controller
 
     public function show($id)
     {
-        $materia = Materia::with('docente')->findOrFail($id);
-        return view('materias.show', compact('materia'));
+        $materia = Materia::with(['docente'])->findOrFail($id);
+        
+        // Security check: Teacher can only view their own subject? 
+        // Or maybe they can view others but not manage? 
+        // Requirement says "he is him and can only touch the subjects of his profession"
+        if (Auth::user()->rol === 'docente' && $materia->id_docente !== Auth::id()) {
+            abort(403, 'No tienes permiso para ver esta materia.');
+        }
+
+        $recursos = \App\Models\Recurso::where('id_materia', $id)->get();
+        return view('materias.show', compact('materia', 'recursos'));
     }
 
     public function edit($id)
     {
+        if (Auth::user()->rol !== 'admin') abort(403);
         $materia = Materia::findOrFail($id);
         $docentes = \App\Models\User::where('rol', 'docente')->get();
         return view('materias.edit', compact('materia', 'docentes'));
@@ -80,6 +123,7 @@ class MateriaController extends Controller
 
     public function update(Request $request, $id)
     {
+        if (Auth::user()->rol !== 'admin') abort(403);
         $materia = Materia::findOrFail($id);
 
         $request->validate([
@@ -105,7 +149,13 @@ class MateriaController extends Controller
             'periodo' => $request->periodo,
             'horario' => $request->horario,
             'cupo_maximo' => $request->cupo_maximo,
+            'grado' => $request->grado,
+            'seccion' => $request->seccion,
         ]);
+        
+        // Sync students immediately (in case grado/seccion changed)
+        $enrollmentService = new \App\Services\EnrollmentService();
+        $enrollmentService->syncMateriaStudents($materia);
 
         Auditoria::create([
             'id_usuario' => Auth::id(),
@@ -118,6 +168,7 @@ class MateriaController extends Controller
 
     public function destroy($id)
     {
+        if (Auth::user()->rol !== 'admin') abort(403);
         $materia = Materia::findOrFail($id);
         $nombreMateria = $materia->nombre;
 

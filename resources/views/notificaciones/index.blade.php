@@ -2,7 +2,7 @@
 
 @section('title', 'Mis Notificaciones')
 
-@section('content')
+@section('main_content_body')
 <div class="card">
     <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
         <h1>Mis Notificaciones</h1>
@@ -42,6 +42,11 @@
                                     <button type="submit" class="btn btn-sm" style="background: #28a745; color: white; padding: 5px 10px; font-size: 12px;">Marcar leída</button>
                                 </form>
                             @endif
+                            
+                            @if($notificacion->tipo == 'mensaje')
+                                <a href="{{ route('mensajes.index') }}" class="btn btn-sm btn-info" style="padding: 5px 10px; font-size: 12px;">Ver Mensajería</a>
+                            @endif
+
                             <form action="{{ route('notificaciones.destroy', $notificacion->id_notificacion) }}" method="POST" style="display: inline;">
                                 @csrf
                                 @method('DELETE')

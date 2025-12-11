@@ -2,47 +2,55 @@
 
 @section('title', 'Dashboard - Administrador')
 
-@section('content')
+@section('main_content_body')
 <div class="card">
     <div class="card-header">
         <h1>Panel de Administración</h1>
     </div>
     <div class="card-body">
-        <div class="dashboard-stats">
-            <div class="stat-card">
-                <h3>{{ $totalUsuarios }}</h3>
-                <p>Total de Usuarios</p>
+    <div class="row">
+        <div class="col-lg-4 col-6">
+            <div class="small-box bg-info">
+                <div class="inner">
+                    <h3>{{ $totalUsuarios }}</h3>
+                    <p>Total de Usuarios</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <a href="{{ route('users.index') }}" class="small-box-footer">Más info <i class="fas fa-arrow-circle-right"></i></a>
             </div>
-            <div class="stat-card stat-card-pink">
-                <h3>{{ $totalMaterias }}</h3>
-                <p>Total de Materias</p>
-            </div>
-            @php
-                $solicitudesPendientes = \App\Models\SolicitudInscripcion::where('estado', 'pendiente')->count();
-            @endphp
-            <div class="stat-card" style="background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);">
-                <h3>{{ $solicitudesPendientes }}</h3>
-                <p>Solicitudes Pendientes</p>
+        </div>
+        
+        <div class="col-lg-4 col-6">
+            <div class="small-box bg-success">
+                <div class="inner">
+                    <h3>{{ $totalMaterias }}</h3>
+                    <p>Total de Materias</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <a href="{{ route('materias.index') }}" class="small-box-footer">Más info <i class="fas fa-arrow-circle-right"></i></a>
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px;">
-            <a href="{{ route('admin.solicitudes.pendientes') }}" class="btn btn-primary" style="text-align: center; padding: 20px; background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);">
-                <h3 style="margin: 0;">Solicitudes Pendientes</h3>
-                <p style="margin: 5px 0 0 0;">Revisar y aprobar solicitudes de inscripción</p>
-                @if($solicitudesPendientes > 0)
-                    <span style="background: #dc3545; color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px; margin-top: 10px; display: inline-block;">{{ $solicitudesPendientes }} pendientes</span>
-                @endif
-            </a>
-            <a href="{{ route('users.index') }}" class="btn btn-primary" style="text-align: center; padding: 20px;">
-                <h3 style="margin: 0;">Gestión de Usuarios</h3>
-                <p style="margin: 5px 0 0 0;">Administrar usuarios del sistema</p>
-            </a>
-            <a href="{{ route('materias.index') }}" class="btn btn-primary" style="text-align: center; padding: 20px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                <h3 style="margin: 0;">Gestión de Materias</h3>
-                <p style="margin: 5px 0 0 0;">Ver todas las materias</p>
-            </a>
+        @php
+            $solicitudesPendientes = \App\Models\SolicitudInscripcion::where('estado', 'pendiente')->count();
+        @endphp
+        <div class="col-lg-4 col-6">
+            <div class="small-box bg-warning">
+                <div class="inner">
+                    <h3>{{ $solicitudesPendientes }}</h3>
+                    <p>Solicitudes Pendientes</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-clipboard-check"></i>
+                </div>
+                <a href="{{ route('admin.solicitudes.pendientes') }}" class="small-box-footer">Más info <i class="fas fa-arrow-circle-right"></i></a>
+            </div>
         </div>
+    </div>
 
         <h2>Últimos Eventos en el Sistema</h2>
         <table class="table">

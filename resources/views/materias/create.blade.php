@@ -2,7 +2,7 @@
 
 @section('title', 'Crear Materia')
 
-@section('content')
+@section('main_content_body')
 <div class="card">
     <div class="card-header">
         <h1>Crear Nueva Materia</h1>
@@ -12,9 +12,14 @@
             @csrf
             <div class="form-group">
                 <label for="nombre">Nombre de la Materia</label>
-                <input type="text" id="nombre" name="nombre" value="{{ old('nombre') }}" required>
+                <select class="form-control" name="nombre" id="nombre" required>
+                    <option value="">Seleccione Materia</option>
+                    @foreach(['Castellano', 'Matemáticas', 'Inglés', 'GHC (Geografía, Historia)', 'Arte y Patrimonio', 'Educación Física', 'Ciencias Naturales', 'Biología', 'Física', 'Química', 'Soberanía', 'Grupo de Recreación'] as $m)
+                        <option value="{{ $m }}" {{ old('nombre') == $m ? 'selected' : '' }}>{{ $m }}</option>
+                    @endforeach
+                </select>
                 @error('nombre')
-                    <div class="error-message">{{ $message }}</div>
+                    <span class="text-danger">{{ $message }}</span>
                 @enderror
             </div>
 
@@ -32,7 +37,7 @@
                     <option value="">Seleccione un docente</option>
                     @foreach($docentes as $docente)
                         <option value="{{ $docente->id_usuario }}" {{ old('id_docente') == $docente->id_usuario ? 'selected' : '' }}>
-                            {{ $docente->nombre }}
+                            {{ $docente->nombre }} {{ $docente->especialidad ? ' - ' . $docente->especialidad : '' }}
                         </option>
                     @endforeach
                 </select>
@@ -55,6 +60,31 @@
                 @error('horario')
                     <div class="error-message">{{ $message }}</div>
                 @enderror
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="grado">Grado / Año</label>
+                        <select class="form-control" id="grado" name="grado" required>
+                            <option value="">Seleccione Grado</option>
+                            @foreach(['1er Año', '2do Año', '3er Año', '4to Año', '5to Año'] as $g)
+                                <option value="{{ $g }}" {{ old('grado') == $g ? 'selected' : '' }}>{{ $g }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="seccion">Sección</label>
+                        <select class="form-control" id="seccion" name="seccion" required>
+                            <option value="">Seleccione Sección</option>
+                            @foreach(['A', 'B', 'C', 'D', 'E', 'U'] as $s)
+                                <option value="{{ $s }}" {{ old('seccion') == $s ? 'selected' : '' }}>{{ $s }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
             </div>
 
             <div class="form-group">

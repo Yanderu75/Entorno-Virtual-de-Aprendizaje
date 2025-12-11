@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 class NotificacionController extends Controller
 {
-    // Ver todas las notificaciones del usuario
+    // todas las notificaciones del usuaroi
     public function index()
     {
         $notificaciones = Notificacion::where('id_usuario', Auth::id())
@@ -18,7 +18,7 @@ class NotificacionController extends Controller
         return view('notificaciones.index', compact('notificaciones'));
     }
 
-    // Marcar notificación como leída
+    // aca marca notificación como en visto
     public function marcarLeida($id)
     {
         $notificacion = Notificacion::where('id_notificacion', $id)
@@ -30,7 +30,7 @@ class NotificacionController extends Controller
         return response()->json(['success' => true]);
     }
 
-    // Marcar todas como leídas
+    // marcar todascomo leidas
     public function marcarTodasLeidas()
     {
         Notificacion::where('id_usuario', Auth::id())
@@ -40,7 +40,7 @@ class NotificacionController extends Controller
         return back()->with('success', 'Todas las notificaciones han sido marcadas como leídas');
     }
 
-    // Contar notificaciones no leídas (API)
+    // cuenta notificaciones no leídas 
     public function contarNoLeidas()
     {
         $count = Notificacion::where('id_usuario', Auth::id())
