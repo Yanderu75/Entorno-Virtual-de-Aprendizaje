@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -12,14 +12,11 @@ class MensajeController extends Controller
     public function index()
     {
         $userId = Auth::id();
-        // Mensajes recibidos
         $mensajesRecibidos = MensajePrivado::where('id_receptor', $userId)
                                            ->with('emisor')
                                            ->orderBy('created_at', 'desc')
                                            ->get();
 
-        // Count unread
-        // $noLeidos = $mensajesRecibidos->where('leido', false)->count();
 
         return view('mensajes.index', compact('mensajesRecibidos'));
     }
@@ -40,7 +37,6 @@ class MensajeController extends Controller
         $user = Auth::user();
         $usuarios = [];
 
-        // Logic to fetch potential recipients (same as before)
         if ($user->rol == 'estudiante') {
             $usuarios = User::where('rol', 'docente')->orWhere('rol', 'admin')->get();
         } elseif ($user->rol == 'docente') {
@@ -49,14 +45,12 @@ class MensajeController extends Controller
             $usuarios = User::where('id_usuario', '!=', $user->id_usuario)->get();
         }
 
-        // Handle Reply Logic
         $replyUser = null;
         $originalMessage = null;
         $body = '';
 
         if ($request->has('reply_to')) {
             $replyUser = User::find($request->reply_to);
-             // Verify if user is allowed to msg this person? (Optional but good)
         }
 
         if ($request->has('ref')) {
@@ -86,7 +80,6 @@ class MensajeController extends Controller
             'leido' => false,
         ]);
 
-        // Create Notification for the recipient
         \App\Models\Notificacion::crearNotificacion(
             $request->destinatario,
             'mensaje',
@@ -101,12 +94,10 @@ class MensajeController extends Controller
     {
         $mensaje = MensajePrivado::with(['emisor', 'receptor'])->findOrFail($id);
 
-        // Security check: only sender or receiver can view
         if (Auth::id() != $mensaje->id_emisor && Auth::id() != $mensaje->id_receptor) {
             abort(403);
         }
 
-        // Mark as read if receiver
         if (Auth::id() == $mensaje->id_receptor && !$mensaje->leido) {
             $mensaje->leido = true;
             $mensaje->save();

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Auth;
 
 class NotificacionController extends Controller
 {
-    // todas las notificaciones del usuaroi
     public function index()
     {
         $notificaciones = Notificacion::where('id_usuario', Auth::id())
@@ -18,7 +17,6 @@ class NotificacionController extends Controller
         return view('notificaciones.index', compact('notificaciones'));
     }
 
-    // aca marca notificación como en visto
     public function marcarLeida($id)
     {
         $notificacion = Notificacion::where('id_notificacion', $id)
@@ -30,17 +28,15 @@ class NotificacionController extends Controller
         return response()->json(['success' => true]);
     }
 
-    // marcar todascomo leidas
     public function marcarTodasLeidas()
     {
         Notificacion::where('id_usuario', Auth::id())
             ->where('leido', false)
             ->update(['leido' => true]);
 
-        return back()->with('success', 'Todas las notificaciones han sido marcadas como leídas');
+        return back()->with('success', 'Todas las notificaciones han sido marcadas como leÃ­das');
     }
 
-    // cuenta notificaciones no leídas 
     public function contarNoLeidas()
     {
         $count = Notificacion::where('id_usuario', Auth::id())
@@ -50,7 +46,6 @@ class NotificacionController extends Controller
         return response()->json(['count' => $count]);
     }
 
-    // Eliminar notificación
     public function destroy($id)
     {
         $notificacion = Notificacion::where('id_notificacion', $id)
@@ -59,7 +54,7 @@ class NotificacionController extends Controller
 
         $notificacion->delete();
 
-        return back()->with('success', 'Notificación eliminada');
+        return back()->with('success', 'NotificaciÃ³n eliminada');
     }
 }
 

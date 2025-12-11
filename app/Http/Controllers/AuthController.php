@@ -114,7 +114,7 @@ class AuthController extends Controller
             'cedula' => $request->cedula,
             'correo' => $request->correo,
             'contraseña' => Hash::make($request->contraseña),
-            'rol' => 'estudiante', // Default role
+            'rol' => 'estudiante',
             'estado' => 'activo',
         ]);
 

@@ -12,14 +12,14 @@ class AuditoriaController extends Controller
 {
     public function index(Request $request)
     {
-        // Security: Only Admin
+
         if (Auth::user()->rol !== 'admin') {
             abort(403, 'Acceso denegado');
         }
 
         $query = Auditoria::with('usuario')->orderBy('created_at', 'desc');
 
-        // Filters
+
         if ($request->filled('id_usuario')) {
             $query->where('id_usuario', $request->id_usuario);
         }
@@ -40,14 +40,14 @@ class AuditoriaController extends Controller
 
     public function reporte(Request $request)
     {
-        // Security: Only Admin
+
         if (Auth::user()->rol !== 'admin') {
             abort(403, 'Acceso denegado');
         }
 
         $query = Auditoria::with('usuario')->orderBy('created_at', 'desc');
 
-        // Apply same filters for the report
+
         if ($request->filled('id_usuario')) {
             $query->where('id_usuario', $request->id_usuario);
         }
@@ -58,7 +58,7 @@ class AuditoriaController extends Controller
             $query->whereDate('created_at', '<=', $request->fecha_fin);
         }
 
-        $logs = $query->limit(500)->get(); // Limit to avoid memory issues in PDF
+        $logs = $query->limit(500)->get();
 
         $pdf = Pdf::loadView('reportes.pdf_auditoria', compact('logs'));
         return $pdf->stream('reporte_auditoria.pdf');

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -27,7 +27,6 @@ class EstudianteMateriaController extends Controller
         $estudiantesQuery = User::where('rol', 'estudiante')
             ->where('estado', 'activo');
             
-        // Filters for finding candidates
         $filterGrado = $request->get('grado');
         $filterSeccion = $request->get('seccion');
         
@@ -41,7 +40,6 @@ class EstudianteMateriaController extends Controller
 
         $estudiantes = $estudiantesQuery->get();
 
-        // Contar cupos disponibles
         $cuposDisponibles = null;
         if ($materia->cupo_maximo !== null) {
             $cuposDisponibles = $materia->cupo_maximo - $estudiantesAsignados->count();
@@ -54,22 +52,18 @@ class EstudianteMateriaController extends Controller
     {
         $materia = Materia::findOrFail($materiaId);
         
-        // Si es admin, puede asignar directamente (sin solicitud)
         if (Auth::user()->rol === 'admin') {
             return $this->asignarDirectamente($request, $materiaId, $materia);
         }
         
-        // Si es docente, debe crear una solicitud
         if (Auth::user()->rol !== 'docente' || $materia->id_docente !== Auth::id()) {
             abort(403, 'No tienes permisos para asignar estudiantes a esta materia');
         }
 
-        // Redirigir al controlador de solicitudes
         $solicitudController = new \App\Http\Controllers\SolicitudInscripcionController();
         return $solicitudController->store($request, $materiaId);
     }
 
-    // Método privado para asignación directa (solo admin)
     private function asignarDirectamente(Request $request, $materiaId, $materia)
     {
         $request->validate([
@@ -85,7 +79,6 @@ class EstudianteMateriaController extends Controller
             return back()->withErrors(['error' => 'Solo se pueden asignar estudiantes']);
         }
 
-        // Validar cupos
         $estudiantesAsignados = EstudianteMateria::where('id_materia', $materiaId)->count();
         if ($materia->cupo_maximo !== null && $estudiantesAsignados >= $materia->cupo_maximo) {
             return back()->withErrors(['error' => 'No hay cupos disponibles en esta materia']);
@@ -96,7 +89,7 @@ class EstudianteMateriaController extends Controller
             ->exists();
 
         if ($existe) {
-            return back()->withErrors(['error' => 'El estudiante ya está asignado a esta materia']);
+            return back()->withErrors(['error' => 'El estudiante ya estÃ¡ asignado a esta materia']);
         }
 
         EstudianteMateria::create([
@@ -108,7 +101,7 @@ class EstudianteMateriaController extends Controller
 
         Auditoria::create([
             'id_usuario' => Auth::id(),
-            'accion' => 'Asignación directa de estudiante ' . $estudiante->nombre . ' a materia ' . $materia->nombre . ' (Admin)',
+            'accion' => 'AsignaciÃ³n directa de estudiante ' . $estudiante->nombre . ' a materia ' . $materia->nombre . ' (Admin)',
             'ip' => $request->ip(),
         ]);
 
@@ -120,7 +113,7 @@ class EstudianteMateriaController extends Controller
         $materia = Materia::findOrFail($materiaId);
         
         if (Auth::user()->rol !== 'admin' && (Auth::user()->rol !== 'docente' || $materia->id_docente !== Auth::id())) {
-            abort(403, 'No tienes permisos para realizar esta acción');
+            abort(403, 'No tienes permisos para realizar esta acciÃ³n');
         }
 
         $estudianteMateria = EstudianteMateria::findOrFail($id);
@@ -131,7 +124,7 @@ class EstudianteMateriaController extends Controller
 
         Auditoria::create([
             'id_usuario' => Auth::id(),
-            'accion' => 'Desasignación de estudiante ' . $estudiante->nombre . ' de materia ' . $materiaNombre,
+            'accion' => 'DesasignaciÃ³n de estudiante ' . $estudiante->nombre . ' de materia ' . $materiaNombre,
             'ip' => request()->ip(),
         ]);
 

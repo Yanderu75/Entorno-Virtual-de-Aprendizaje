@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -30,7 +30,6 @@ class ReporteController extends Controller
             
             $callback = function() use ($usuarios) {
                 $file = fopen('php://output', 'w');
-                // Add Byte Order Mark (BOM) for Excel UTF-8 compatibility
                 fputs($file, "\xEF\xBB\xBF"); 
                 fputcsv($file, ['ID', 'Nombre', 'Email', 'Rol', 'Fecha Registro']);
                 
@@ -49,18 +48,14 @@ class ReporteController extends Controller
             return Response::stream($callback, 200, $headers);
         }
 
-        // PDF Default
         $pdf = Pdf::loadView('reportes.pdf_usuarios', compact('usuarios'));
         return $pdf->stream('usuarios.pdf');
     }
 
     public function rendimiento(Request $request)
     {
-        // Use EstudianteMateria as it links Student + Materia (+ Average)
         $registros = EstudianteMateria::with(['estudiante', 'materia', 'calificaciones'])->get();
         
-        // Calculate lapsos separately as they are aggregate of individual qualifications
-        // Or simply iterate and calculate on the fly for the report
         
         if ($request->format == 'csv') {
             $filename = "rendimiento_academico_" . date('Y-m-d') . ".csv";
@@ -71,12 +66,10 @@ class ReporteController extends Controller
 
             $callback = function() use ($registros) {
                 $file = fopen('php://output', 'w');
-                // Add Byte Order Mark (BOM)
                 fputs($file, "\xEF\xBB\xBF");
                 fputcsv($file, ['Estudiante', 'Materia', 'Lapso 1', 'Lapso 2', 'Lapso 3', 'Promedio General']);
                 
                 foreach ($registros as $registro) {
-                    // Logic to calc average per lapso manually if not stored
                     $l1 = $this->calcPromedioLapso($registro, 1);
                     $l2 = $this->calcPromedioLapso($registro, 2);
                     $l3 = $this->calcPromedioLapso($registro, 3);
@@ -96,7 +89,6 @@ class ReporteController extends Controller
             return Response::stream($callback, 200, $headers);
         }
 
-        // Prepare data for PDF view
         foreach ($registros as $registro) {
             $registro->l1 = $this->calcPromedioLapso($registro, 1);
             $registro->l2 = $this->calcPromedioLapso($registro, 2);
@@ -130,7 +122,7 @@ class ReporteController extends Controller
             $callback = function() use ($materias) {
                 $file = fopen('php://output', 'w');
                 fputs($file, "\xEF\xBB\xBF"); // BOM
-                fputcsv($file, ['Materia', 'Grado', 'Sección', 'Docente', 'Estudiantes Inscritos', 'Horario']);
+                fputcsv($file, ['Materia', 'Grado', 'SecciÃ³n', 'Docente', 'Estudiantes Inscritos', 'Horario']);
                 
                 foreach ($materias as $materia) {
                     fputcsv($file, [

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -20,15 +20,12 @@ class MateriaController extends Controller
         }
 
         if (Auth::user()->rol === 'docente') {
-            // Teacher sees only their assigned subjects
             $materias = Materia::where('id_docente', Auth::id())->get();
             return view('materias.index', compact('materias'));
         }
 
-        // Admin sees all, with filters
         $query = Materia::with('docente');
 
-        // Filters
         $filterGrado = $request->get('grado');
         if ($filterGrado) {
             $query->where('grado', $filterGrado);
@@ -70,8 +67,8 @@ class MateriaController extends Controller
             'nombre.min' => 'El nombre debe tener al menos 3 caracteres',
             'id_docente.required' => 'Debes seleccionar un docente',
             'id_docente.exists' => 'El docente seleccionado no existe',
-            'cupo_maximo.integer' => 'El cupo máximo debe ser un número',
-            'cupo_maximo.min' => 'El cupo máximo debe ser al menos 1',
+            'cupo_maximo.integer' => 'El cupo mÃ¡ximo debe ser un nÃºmero',
+            'cupo_maximo.min' => 'El cupo mÃ¡ximo debe ser al menos 1',
         ]);
 
         $materia = Materia::create([
@@ -85,13 +82,12 @@ class MateriaController extends Controller
             'seccion' => $request->seccion,
         ]);
 
-        // Sync students immediately
         $enrollmentService = new \App\Services\EnrollmentService();
         $enrollmentService->syncMateriaStudents($materia);
 
         Auditoria::create([
             'id_usuario' => Auth::id(),
-            'accion' => 'Creación de materia: ' . $materia->nombre,
+            'accion' => 'CreaciÃ³n de materia: ' . $materia->nombre,
             'ip' => $request->ip(),
         ]);
 
@@ -102,9 +98,6 @@ class MateriaController extends Controller
     {
         $materia = Materia::with(['docente'])->findOrFail($id);
         
-        // Security check: Teacher can only view their own subject? 
-        // Or maybe they can view others but not manage? 
-        // Requirement says "he is him and can only touch the subjects of his profession"
         if (Auth::user()->rol === 'docente' && $materia->id_docente !== Auth::id()) {
             abort(403, 'No tienes permiso para ver esta materia.');
         }
@@ -138,8 +131,8 @@ class MateriaController extends Controller
             'nombre.min' => 'El nombre debe tener al menos 3 caracteres',
             'id_docente.required' => 'Debes seleccionar un docente',
             'id_docente.exists' => 'El docente seleccionado no existe',
-            'cupo_maximo.integer' => 'El cupo máximo debe ser un número',
-            'cupo_maximo.min' => 'El cupo máximo debe ser al menos 1',
+            'cupo_maximo.integer' => 'El cupo mÃ¡ximo debe ser un nÃºmero',
+            'cupo_maximo.min' => 'El cupo mÃ¡ximo debe ser al menos 1',
         ]);
 
         $materia->update([
@@ -153,13 +146,12 @@ class MateriaController extends Controller
             'seccion' => $request->seccion,
         ]);
         
-        // Sync students immediately (in case grado/seccion changed)
         $enrollmentService = new \App\Services\EnrollmentService();
         $enrollmentService->syncMateriaStudents($materia);
 
         Auditoria::create([
             'id_usuario' => Auth::id(),
-            'accion' => 'Actualización de materia: ' . $materia->nombre,
+            'accion' => 'ActualizaciÃ³n de materia: ' . $materia->nombre,
             'ip' => $request->ip(),
         ]);
 
@@ -176,7 +168,7 @@ class MateriaController extends Controller
 
         Auditoria::create([
             'id_usuario' => Auth::id(),
-            'accion' => 'Eliminación de materia: ' . $nombreMateria,
+            'accion' => 'EliminaciÃ³n de materia: ' . $nombreMateria,
             'ip' => request()->ip(),
         ]);
 

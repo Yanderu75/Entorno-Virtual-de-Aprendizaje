@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\DB;
 
 class SolicitudInscripcionController extends Controller
 {
-    // Vista para docentes: ver sus solicitudes
     public function index()
     {
         if (Auth::user()->rol !== 'docente') {
@@ -29,12 +28,10 @@ class SolicitudInscripcionController extends Controller
         return view('solicitudes.index', compact('solicitudes'));
     }
 
-    // Crear solicitud de inscripción (Docente)
     public function store(Request $request, $materiaId)
     {
         $materia = Materia::findOrFail($materiaId);
         
-        // Verificar permisos
         if (Auth::user()->rol !== 'docente' || $materia->id_docente !== Auth::id()) {
             abort(403, 'No tienes permisos para solicitar inscripciones en esta materia');
         }
@@ -48,26 +45,22 @@ class SolicitudInscripcionController extends Controller
 
         $estudiante = User::findOrFail($request->id_estudiante);
 
-        // Validar que sea estudiante
         if ($estudiante->rol !== 'estudiante') {
             return back()->withErrors(['error' => 'Solo se pueden inscribir estudiantes']);
         }
 
-        // Validar que el estudiante esté activo
         if ($estudiante->estado !== 'activo') {
             return back()->withErrors(['error' => 'El estudiante debe estar activo']);
         }
 
-        // Validar que no esté ya asignado
         $yaAsignado = EstudianteMateria::where('id_estudiante', $request->id_estudiante)
             ->where('id_materia', $materiaId)
             ->exists();
 
         if ($yaAsignado) {
-            return back()->withErrors(['error' => 'El estudiante ya está asignado a esta materia']);
+            return back()->withErrors(['error' => 'El estudiante ya estÃ¡ asignado a esta materia']);
         }
 
-        // Validar que no haya una solicitud pendiente
         $solicitudPendiente = SolicitudInscripcion::where('id_estudiante', $request->id_estudiante)
             ->where('id_materia', $materiaId)
             ->where('estado', 'pendiente')
@@ -77,7 +70,6 @@ class SolicitudInscripcionController extends Controller
             return back()->withErrors(['error' => 'Ya existe una solicitud pendiente para este estudiante en esta materia']);
         }
 
-        // Validar cupos disponibles
         $estudiantesAsignados = EstudianteMateria::where('id_materia', $materiaId)->count();
         if ($materia->cupo_maximo !== null && $estudiantesAsignados >= $materia->cupo_maximo) {
             return back()->withErrors(['error' => 'No hay cupos disponibles en esta materia']);
@@ -85,7 +77,6 @@ class SolicitudInscripcionController extends Controller
 
         DB::beginTransaction();
         try {
-            // Crear solicitud
             $solicitud = SolicitudInscripcion::create([
                 'id_docente' => Auth::id(),
                 'id_estudiante' => $request->id_estudiante,
@@ -93,34 +84,31 @@ class SolicitudInscripcionController extends Controller
                 'estado' => 'pendiente',
             ]);
 
-            // Notificar a administradores
             $admins = User::where('rol', 'admin')->where('estado', 'activo')->get();
             foreach ($admins as $admin) {
                 Notificacion::crearNotificacion(
                     $admin->id_usuario,
                     'otro',
-                    'Nueva solicitud de inscripción',
+                    'Nueva solicitud de inscripciÃ³n',
                     "El docente {$materia->docente->nombre} ha solicitado inscribir al estudiante {$estudiante->nombre} en la materia {$materia->nombre}."
                 );
             }
 
-            // Registrar en auditoría
             Auditoria::create([
                 'id_usuario' => Auth::id(),
-                'accion' => "Solicitud de inscripción - Estudiante: {$estudiante->nombre} - Materia: {$materia->nombre}",
+                'accion' => "Solicitud de inscripciÃ³n - Estudiante: {$estudiante->nombre} - Materia: {$materia->nombre}",
                 'ip' => $request->ip(),
             ]);
 
             DB::commit();
 
-            return back()->with('success', 'Solicitud de inscripción enviada exitosamente. Esperando aprobación del administrador.');
+            return back()->with('success', 'Solicitud de inscripciÃ³n enviada exitosamente. Esperando aprobaciÃ³n del administrador.');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withErrors(['error' => 'Error al crear la solicitud: ' . $e->getMessage()]);
         }
     }
 
-    // Vista para administradores: ver solicitudes pendientes
     public function pendientes()
     {
         if (Auth::user()->rol !== 'admin') {
@@ -135,7 +123,6 @@ class SolicitudInscripcionController extends Controller
         return view('solicitudes.pendientes', compact('solicitudes'));
     }
 
-    // Aprobar solicitud (Administrador)
     public function aprobar($id)
     {
         if (Auth::user()->rol !== 'admin') {
@@ -148,25 +135,22 @@ class SolicitudInscripcionController extends Controller
             return back()->withErrors(['error' => 'Esta solicitud ya fue procesada']);
         }
 
-        // Validar cupos nuevamente (por si cambió desde que se creó)
         $materia = $solicitud->materia;
         $estudiantesAsignados = EstudianteMateria::where('id_materia', $solicitud->id_materia)->count();
         if ($materia->cupo_maximo !== null && $estudiantesAsignados >= $materia->cupo_maximo) {
             return back()->withErrors(['error' => 'No hay cupos disponibles en esta materia']);
         }
 
-        // Validar que no esté ya asignado
         $yaAsignado = EstudianteMateria::where('id_estudiante', $solicitud->id_estudiante)
             ->where('id_materia', $solicitud->id_materia)
             ->exists();
 
         if ($yaAsignado) {
-            return back()->withErrors(['error' => 'El estudiante ya está asignado a esta materia']);
+            return back()->withErrors(['error' => 'El estudiante ya estÃ¡ asignado a esta materia']);
         }
 
         DB::beginTransaction();
         try {
-            // Crear asignación definitiva
             EstudianteMateria::create([
                 'id_estudiante' => $solicitud->id_estudiante,
                 'id_materia' => $solicitud->id_materia,
@@ -174,33 +158,29 @@ class SolicitudInscripcionController extends Controller
                 'avance' => 0.00,
             ]);
 
-            // Actualizar solicitud
             $solicitud->update([
                 'estado' => 'aprobada',
                 'fecha_resolucion' => now(),
                 'id_admin_resolutor' => Auth::id(),
             ]);
 
-            // Notificar al docente
             Notificacion::crearNotificacion(
                 $solicitud->id_docente,
                 'inscripcion_aprobada',
-                'Solicitud de inscripción aprobada',
+                'Solicitud de inscripciÃ³n aprobada',
                 "Su solicitud para inscribir al estudiante {$solicitud->estudiante->nombre} en la materia {$solicitud->materia->nombre} ha sido aprobada."
             );
 
-            // Notificar al estudiante
             Notificacion::crearNotificacion(
                 $solicitud->id_estudiante,
                 'inscripcion_aprobada',
-                'Inscripción aprobada',
+                'InscripciÃ³n aprobada',
                 "Has sido inscrito en la materia {$solicitud->materia->nombre} por el docente {$solicitud->docente->nombre}."
             );
 
-            // Registrar en auditoría
             Auditoria::create([
                 'id_usuario' => Auth::id(),
-                'accion' => "Aprobación de solicitud de inscripción - Estudiante: {$solicitud->estudiante->nombre} - Materia: {$solicitud->materia->nombre}",
+                'accion' => "AprobaciÃ³n de solicitud de inscripciÃ³n - Estudiante: {$solicitud->estudiante->nombre} - Materia: {$solicitud->materia->nombre}",
                 'ip' => request()->ip(),
             ]);
 
@@ -213,7 +193,6 @@ class SolicitudInscripcionController extends Controller
         }
     }
 
-    // Rechazar solicitud (Administrador)
     public function rechazar(Request $request, $id)
     {
         if (Auth::user()->rol !== 'admin') {
@@ -236,7 +215,6 @@ class SolicitudInscripcionController extends Controller
 
         DB::beginTransaction();
         try {
-            // Actualizar solicitud
             $solicitud->update([
                 'estado' => 'rechazada',
                 'motivo_rechazo' => $request->motivo_rechazo,
@@ -244,18 +222,16 @@ class SolicitudInscripcionController extends Controller
                 'id_admin_resolutor' => Auth::id(),
             ]);
 
-            // Notificar al docente
             Notificacion::crearNotificacion(
                 $solicitud->id_docente,
                 'inscripcion_rechazada',
-                'Solicitud de inscripción rechazada',
+                'Solicitud de inscripciÃ³n rechazada',
                 "Su solicitud para inscribir al estudiante {$solicitud->estudiante->nombre} en la materia {$solicitud->materia->nombre} ha sido rechazada. Motivo: {$request->motivo_rechazo}"
             );
 
-            // Registrar en auditoría
             Auditoria::create([
                 'id_usuario' => Auth::id(),
-                'accion' => "Rechazo de solicitud de inscripción - Estudiante: {$solicitud->estudiante->nombre} - Materia: {$solicitud->materia->nombre}",
+                'accion' => "Rechazo de solicitud de inscripciÃ³n - Estudiante: {$solicitud->estudiante->nombre} - Materia: {$solicitud->materia->nombre}",
                 'ip' => request()->ip(),
             ]);
 

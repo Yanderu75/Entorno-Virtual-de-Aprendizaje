@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\DB;
 
 class ExamenController extends Controller
 {
-    // ================= DOCENTE: GESTIÓN DE EXÁMENES =================
 
     public function indexDocente()
     {
@@ -64,7 +63,7 @@ class ExamenController extends Controller
 
         Auditoria::create([
             'id_usuario' => Auth::id(),
-            'accion' => 'Creación de examen: ' . $examen->titulo,
+            'accion' => 'CreaciÃ³n de examen: ' . $examen->titulo,
             'ip' => request()->ip(),
         ]);
 
@@ -151,7 +150,6 @@ class ExamenController extends Controller
         return redirect()->route('examenes.index_docente')->with('success', 'Examen eliminado.');
     }
 
-    // ================= PREGUNTAS =================
 
     public function storePregunta(Request $request, $examenId)
     {
@@ -190,13 +188,11 @@ class ExamenController extends Controller
         return back()->with('success', 'Pregunta eliminada.');
     }
 
-    // ================= ESTUDIANTE: PRESENTAR =================
 
     public function indexEstudiante()
     {
         $user = Auth::user();
         
-        // Get student's enrolled subjects
         $materiasIds = EstudianteMateria::where('id_estudiante', $user->id_usuario)
             ->pluck('id_materia');
 
@@ -206,7 +202,6 @@ class ExamenController extends Controller
             ->orderBy('fecha_inicio', 'desc')
             ->get();
         
-        // Check attempts for each exam
         foreach ($examenes as $examen) {
             $examen->intento = IntentoExamen::where('id_examen', $examen->id)
                 ->where('id_estudiante', $user->id_usuario)
@@ -220,16 +215,14 @@ class ExamenController extends Controller
     {
         $examen = Examen::with('preguntas')->findOrFail($id);
         
-        // Verify student is enrolled
         $isEnrolled = EstudianteMateria::where('id_estudiante', Auth::id())
             ->where('id_materia', $examen->id_materia)
             ->exists();
 
         if (!$isEnrolled) {
-            abort(403, 'No estás inscrito en esta materia.');
+            abort(403, 'No estÃ¡s inscrito en esta materia.');
         }
 
-        // Check if already taken
         $intentoPrevio = IntentoExamen::where('id_examen', $id)
             ->where('id_estudiante', Auth::id())
             ->first();
@@ -249,7 +242,6 @@ class ExamenController extends Controller
         
         DB::beginTransaction();
         try {
-            // Calculate total possible points
             $puntajeMaximo = $examen->preguntas->sum('puntaje');
             
             $intento = IntentoExamen::create([
@@ -270,12 +262,9 @@ class ExamenController extends Controller
                 if ($pregunta->tipo == 'abierta') {
                     $requiereRevision = true;
                 } else {
-                    // Auto-grade closed questions
-                    // Normalize both values for comparison
                     $respuestaAlumno = mb_strtolower(trim($respuestaTexto ?? ''));
                     $respuestaCorrecta = mb_strtolower(trim($pregunta->respuesta_correcta ?? ''));
                     
-                    // DEBUG - Remove after testing
                     \Log::info('Comparando respuestas', [
                         'pregunta_id' => $pregunta->id,
                         'respuesta_alumno' => $respuestaAlumno,
@@ -298,12 +287,10 @@ class ExamenController extends Controller
                 ]);
             }
 
-            // Convert to 0-20 scale
             $notaSobre20 = $puntajeMaximo > 0 ? ($puntajeObtenido / $puntajeMaximo) * 20 : 0;
             $notaSobre20 = round($notaSobre20, 2);
             
-            // DEBUG - Remove after testing
-            \Log::info('Cálculo final', [
+            \Log::info('CÃ¡lculo final', [
                 'puntaje_maximo' => $puntajeMaximo,
                 'puntaje_obtenido' => $puntajeObtenido,
                 'nota_sobre_20' => $notaSobre20
@@ -314,15 +301,13 @@ class ExamenController extends Controller
                 'correccion_docente' => !$requiereRevision
             ]);
 
-            // INTEGRATE WITH GRADING SYSTEM
-            // Only save to Calificaciones if correction is complete (no open questions)
             if (!$requiereRevision) {
                 $this->guardarEnCalificaciones($examen, $user->id_usuario, $notaSobre20);
             }
 
             Auditoria::create([
                 'id_usuario' => $user->id_usuario,
-                'accion' => 'Presentación de examen: ' . $examen->titulo,
+                'accion' => 'PresentaciÃ³n de examen: ' . $examen->titulo,
                 'ip' => request()->ip(),
             ]);
             
@@ -338,7 +323,6 @@ class ExamenController extends Controller
 
     private function guardarEnCalificaciones($examen, $estudianteId, $nota)
     {
-        // Find the EstudianteMateria record
         $estudianteMateria = \App\Models\EstudianteMateria::where('id_estudiante', $estudianteId)
             ->where('id_materia', $examen->id_materia)
             ->first();
@@ -352,7 +336,6 @@ class ExamenController extends Controller
                 'porcentaje' => 100, // Will be recalculated in aggregate
             ]);
 
-            // Recalculate average for that lapso
             $this->actualizarPromedioLapso($estudianteMateria->id_estudiante_materia, $examen->lapso);
         }
     }
@@ -371,10 +354,8 @@ class ExamenController extends Controller
         $cantidad = $calificaciones->count();
         $promedio = $suma / $cantidad;
 
-        // Update promedios for the EstudianteMateria
         $estudianteMateria = \App\Models\EstudianteMateria::find($estudianteMateriaId);
         if ($estudianteMateria) {
-            // Recalculate general average across all lapsos
             $promedios = [];
             for ($l = 1; $l <= 3; $l++) {
                 $cals = \App\Models\Calificacion::where('id_estudiante_materia', $estudianteMateriaId)
@@ -396,7 +377,6 @@ class ExamenController extends Controller
         }
     }
 
-    // ================= CORRECCIÓN MANUAL =================
 
     public function revisar($intentoId)
     {
@@ -426,6 +406,6 @@ class ExamenController extends Controller
             'correccion_docente' => true
         ]);
 
-        return back()->with('success', 'Corrección guardada. Nota final: ' . $notaTotal);
+        return back()->with('success', 'CorrecciÃ³n guardada. Nota final: ' . $notaTotal);
     }
 }

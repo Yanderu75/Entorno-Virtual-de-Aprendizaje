@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -14,7 +14,6 @@ class RecursoController extends Controller
     {
         $query = Recurso::with(['materia.docente']);
 
-        // Filters
         if ($request->has('grado') && $request->grado != '') {
             $query->whereHas('materia', function($q) use ($request) {
                 $q->where('grado', $request->grado);
@@ -29,16 +28,12 @@ class RecursoController extends Controller
 
         $recursos = $query->latest()->get();
 
-        // Get unique Grados and Docentes for filters from existing resources? Or just hardcode grados?
-        // Let's hardcode grados for now as they are standard.
 
         return view('recursos.index', compact('recursos'));
     }
 
     public function create()
     {
-        // For Teacher to upload from Main Menu
-        // They need to choose a Materia they teach
         $user = Auth::user();
         if ($user->rol == 'admin') {
             $materias = Materia::all();
@@ -51,7 +46,6 @@ class RecursoController extends Controller
 
     public function store(Request $request, $idMateria = null)
     {
-        // Handle both route param and request input for id_materia
         $materiaId = $idMateria ?? $request->input('id_materia');
 
         if (!$materiaId) {
@@ -65,7 +59,6 @@ class RecursoController extends Controller
 
         $materia = Materia::findOrFail($materiaId);
         
-        // Authorization: Only Docente of the materia or Admin
         if (Auth::user()->rol != 'admin' && Auth::id() != $materia->id_docente) {
              abort(403, 'No tienes permiso para agregar recursos a esta materia.');
         }
@@ -92,13 +85,11 @@ class RecursoController extends Controller
     {
         $recurso = Recurso::findOrFail($id);
         
-        // Authorization
         $materia = $recurso->materia;
         if (Auth::user()->rol != 'admin' && Auth::id() != $materia->id_docente) {
             abort(403);
         }
 
-        // Delete file from storage
         if (Storage::disk('public')->exists($recurso->ruta)) {
             Storage::disk('public')->delete($recurso->ruta);
         }
@@ -112,7 +103,6 @@ class RecursoController extends Controller
     {
         $recurso = Recurso::findOrFail($id);
         
-        // Start download logic
         if (Storage::disk('public')->exists($recurso->ruta)) {
             return Storage::disk('public')->download($recurso->ruta, $recurso->titulo . '.' . $recurso->tipo);
         }

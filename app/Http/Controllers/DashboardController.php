@@ -13,7 +13,7 @@ class DashboardController extends Controller
     {
         $userId = auth()->id();
         $materiasInscritas = \App\Models\EstudianteMateria::where('id_estudiante', $userId)->count();
-        // Calculate average grade if logic exists, otherwise 0
+
         $promedioGeneral = \App\Models\EstudianteMateria::where('id_estudiante', $userId)->avg('promedio') ?? 0;
         
         return view('dashboard.estudiante', [
@@ -26,7 +26,7 @@ class DashboardController extends Controller
     {
         $userId = auth()->id();
         $totalMaterias = \App\Models\Materia::where('id_docente', $userId)->count();
-        // Count total unique students across all materias of this docent
+
         $totalEstudiantes = \App\Models\EstudianteMateria::whereHas('materia', function($query) use ($userId){
             $query->where('id_docente', $userId);
         })->distinct('id_estudiante')->count('id_estudiante');

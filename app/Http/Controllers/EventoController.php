@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -12,25 +12,20 @@ class EventoController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            // Logic for JSON Calendar Feed
             $user = Auth::user();
             $query = Evento::query();
 
             if ($user->rol == 'estudiante') {
-                 // Students see events for their materias + general events
                  $materiasIds = \App\Models\EstudianteMateria::where('id_estudiante', $user->id_usuario)->pluck('id_materia');
                  $query->whereIn('id_materia', $materiasIds)
                        ->orWhereNull('id_materia');
             } elseif ($user->rol == 'docente') {
-                // Teachers see events they created + events for their materias
                 $query->where('id_usuario', $user->id_usuario)
                       ->orWhereIn('id_materia', Materia::where('id_docente', $user->id_usuario)->pluck('id_materia'));
             }
-            // Admins see all logic implicit or specific check
             
             $eventos = $query->get(['id_evento as id', 'titulo as title', 'fecha_inicio as start', 'fecha_fin as end', 'tipo']);
             
-            // Format for FullCalendar
             $formattedEvents = $eventos->map(function($ev) {
                 $color = '#3788d8'; // default blue
                 if($ev->tipo == 'examen') $color = '#dc3545'; // red
@@ -49,7 +44,6 @@ class EventoController extends Controller
             return response()->json($formattedEvents);
         }
 
-        // Return view
         $materias = [];
         if (Auth::user()->rol == 'docente') {
             $materias = Materia::where('id_docente', Auth::id())->get();
@@ -87,7 +81,6 @@ class EventoController extends Controller
     {
         $evento = Evento::findOrFail($id);
         
-        // Security: Only creator or admin can delete
         if (Auth::user()->rol != 'admin' && Auth::id() != $evento->id_usuario) {
             abort(403);
         }
